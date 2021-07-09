@@ -1,0 +1,100 @@
+version: 0.2
+
+
+env:
+  variables:
+    IMAGE_REPO_NAME: "cna-booking"
+
+phases:
+  install:
+    runtime-versions:
+      java: corretto8 # Amazon Corretto 8 - production-ready distribution of the OpenJDK
+      docker: 18
+    commands:
+      - curl -LO https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl 
+      - chmod +x ./kubectl 
+      - mv ./kubectl /usr/local/bin/kubectl 
+          
+  pre_build:
+    commands:
+      - echo Region = $AWS_DEFAULT_REGION # Check Environment Variables
+      - echo Account ID = $AWS_ACCOUNT_ID # Check Environment Variables
+      - echo ECR Repo = $IMAGE_REPO_NAME # Check Environment Variables
+      - echo Docker Image Tag = $IMAGE_TAG # Check Environment Variables
+      - echo Logging in to Amazon ECR...
+      - $(aws ecr get-login --no-include-email --region $AWS_DEFAULT_REGION) # Login ECR
+  build:
+    commands:
+      - echo Build started on `date`
+      - echo Building the Docker image...
+      - mvn clean
+      - mvn package -Dmaven.test.skip=true # Build maven
+      - docker build -t $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$IMAGE_REPO_NAME:$CODEBUILD_RESOLVED_SOURCE_VERSION . # Build docker image
+  post_build:
+    commands:
+      - echo Build completed on `date`
+      - echo Pushing the Docker image...
+      - docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$IMAGE_REPO_NAME:$CODEBUILD_RESOLVED_SOURCE_VERSION # Push docker image to ECR
+      - echo Deploy service into EKS
+      - kubectl config set-cluster k8s --server="$KUBE_URL" --insecure-skip-tls-verify=true 
+      - kubectl config set-credentials admin --token="$KUBE_TOKEN" 
+      - kubectl config set-context default --cluster=k8s --user=admin 
+      - kubectl config use-context default 
+      - |
+          cat <<EOF | kubectl apply -f -
+          apiVersion: v1
+          kind: Service
+          metadata:
+            name: $IMAGE_REPO_NAME
+            labels:
+              app: $IMAGE_REPO_NAME
+          spec:
+            ports:
+              - port: 8080
+                targetPort: 8080
+            selector:
+              app: $IMAGE_REPO_NAME
+          EOF
+      - |
+          cat  <<EOF | kubectl apply -f -
+          apiVersion: apps/v1
+          kind: Deployment
+          metadata:
+            name: $IMAGE_REPO_NAME
+            labels:
+              app: $IMAGE_REPO_NAME
+          spec:
+            replicas: 1
+            selector:
+              matchLabels:
+                app: $IMAGE_REPO_NAME
+            template:
+              metadata:
+                labels:
+                  app: $IMAGE_REPO_NAME
+              spec:
+                containers:
+                  - name: $IMAGE_REPO_NAME
+                    image: $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$IMAGE_REPO_NAME:$CODEBUILD_RESOLVED_SOURCE_VERSION
+                    ports:
+                      - containerPort: 8080
+                    readinessProbe:
+                      httpGet:
+                        path: /actuator/health
+                        port: 8080
+                      initialDelaySeconds: 10
+                      timeoutSeconds: 2
+                      periodSeconds: 5
+                      failureThreshold: 10
+                    livenessProbe:
+                      httpGet:
+                        path: /actuator/health
+                        port: 8080
+                      initialDelaySeconds: 120
+                      timeoutSeconds: 2
+                      periodSeconds: 5
+                      failureThreshold: 5
+          EOF
+cache:
+  paths:
+    - '/root/.m2/**/*'
