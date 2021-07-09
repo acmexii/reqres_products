@@ -25,7 +25,7 @@ phases:
       - $(aws ecr get-login --no-include-email --region $AWS_DEFAULT_REGION) # Login ECR
       - echo Context switching to Amazon EKS...
       - mkdir ~/.kube
-      - $(aws eks --region $AWS_DEFAULT_REGION update-kubeconfig --name user30-eks)
+      - aws eks --region $AWS_DEFAULT_REGION update-kubeconfig --name user30-eks
   build:
     commands:
       - echo Build started on `date`
