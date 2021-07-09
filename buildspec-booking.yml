@@ -26,7 +26,7 @@ phases:
       - $(aws ecr get-login --no-include-email --region $AWS_DEFAULT_REGION) # Login ECR
       - echo Context switching to Amazon EKS...
       - mkdir ~/.kube
-      - aws eks --region $AWS_DEFAULT_REGION update-kubeconfig --name $CLUSTER_NAME
+      - $(aws eks --region $AWS_DEFAULT_REGION update-kubeconfig --name $CLUSTER_NAME) # Create EKS Credential
   build:
     commands:
       - echo Build started on `date`
