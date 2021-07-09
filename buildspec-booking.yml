@@ -42,10 +42,10 @@ phases:
 #      - kubectl config set-cluster k8s --server="$KUBE_URL" --insecure-skip-tls-verify=true 
 #      - kubectl config set-credentials admin --token="$KUBE_TOKEN" 
 #      - kubectl config set-context default --cluster=k8s --user=admin 
-       - echo Kubernetes config Context...
-       - cat ~/.kube/config
+      - echo Kubernetes config Context...
+      - cat ~/.kube/config
 #      - kubectl config use-context default 
-       - |
+      - |
           cat <<EOF | kubectl apply -f -
           apiVersion: v1
           kind: Service
@@ -60,7 +60,7 @@ phases:
             selector:
               app: $IMAGE_REPO_NAME
           EOF
-       - |
+      - |
           cat  <<EOF | kubectl apply -f -
           apiVersion: apps/v1
           kind: Deployment
