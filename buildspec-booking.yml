@@ -3,6 +3,7 @@ version: 0.2
  
 env:
   variables:
+    CLUSTER_NAME: "user30-eks"
     IMAGE_REPO_NAME: "cna-booking"
 
 phases:
@@ -25,7 +26,7 @@ phases:
       - $(aws ecr get-login --no-include-email --region $AWS_DEFAULT_REGION) # Login ECR
       - echo Context switching to Amazon EKS...
       - mkdir ~/.kube
-      - aws eks --region $AWS_DEFAULT_REGION update-kubeconfig --name user30-eks
+      - aws eks --region $AWS_DEFAULT_REGION update-kubeconfig --name $CLUSTER_NAME
   build:
     commands:
       - echo Build started on `date`
@@ -45,6 +46,7 @@ phases:
       - echo Kubernetes config Context...
       - cat ~/.kube/config
 #      - kubectl config use-context default 
+      - kubectl config use-context arn:aws:$AWS_DEFAULT_REGION:$AWS_ACCOUNT_ID:cluster/$$CLUSTER_NAME
       - |
           cat <<EOF | kubectl apply -f -
           apiVersion: v1
