@@ -46,7 +46,7 @@ phases:
       - echo Kubernetes config Context...
       - cat ~/.kube/config
 #      - kubectl config use-context default 
-      - kubectl config use-context arn:aws:$AWS_DEFAULT_REGION:$AWS_ACCOUNT_ID:cluster/$$CLUSTER_NAME
+      - kubectl config use-context arn:aws:$AWS_DEFAULT_REGION:$AWS_ACCOUNT_ID:cluster/$CLUSTER_NAME
       - |
           cat <<EOF | kubectl apply -f -
           apiVersion: v1
