@@ -40,7 +40,7 @@ phases:
       - echo Pushing the Docker image...
       - docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$IMAGE_REPO_NAME:$CODEBUILD_RESOLVED_SOURCE_VERSION # Push docker image to ECR
       - echo Deploy service into EKS
-      - aws eks --region $AWS_DEFAULT_REGION update-kubeconfig --name $CLUSTER_NAME # Create EKS Credential      
+      - $(aws eks --region $AWS_DEFAULT_REGION update-kubeconfig --name $CLUSTER_NAME) # Create EKS Credential      
 #      - kubectl config set-cluster k8s --server="$KUBE_URL" --insecure-skip-tls-verify=true 
 #      - kubectl config set-credentials admin --token="$KUBE_TOKEN" 
 #      - kubectl config set-context default --cluster=k8s --user=admin 
