@@ -1,6 +1,5 @@
 version: 0.2
  
-     
 env:
   variables:
     CLUSTER_NAME: "user10-eks"
