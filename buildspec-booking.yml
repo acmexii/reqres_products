@@ -16,7 +16,7 @@ phases:
       - chmod +x ./kubectl 
       - mv ./kubectl /usr/local/bin/kubectl 
       - mkdir ~/.kube
-      - aws eks --region $AWS_DEFAULT_REGION update-kubeconfig --name $CLUSTER_NAME
+      - $(aws eks --region $AWS_DEFAULT_REGION update-kubeconfig --name $CLUSTER_NAME)
   pre_build:
     commands:
       - echo Region = $AWS_DEFAULT_REGION # Check Environment Variables
