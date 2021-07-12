@@ -51,6 +51,8 @@ phases:
 #      - kubectl config use-context default 
 #      - kubectl config use-context arn:aws:eks:$AWS_DEFAULT_REGION:$AWS_ACCOUNT_ID:cluster/$CLUSTER_NAME
       - aws eks --region $AWS_DEFAULT_REGION update-kubeconfig --name $CLUSTER_NAME
+      - kubectl get all
+      - kubectl apply -f kubernetes/service.yaml
       - |
           cat <<EOF | kubectl apply -f -
           apiVersion: v1
