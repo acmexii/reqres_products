@@ -6,7 +6,7 @@ env:
     IMAGE_REPO_NAME: "cna-booking"
     AWS_ACCOUNT_ID: "879772956301"
 
-phases:
+phases: 
   install:
     runtime-versions:
       java: corretto8 # Amazon Corretto 8 - production-ready distribution of the OpenJDK
