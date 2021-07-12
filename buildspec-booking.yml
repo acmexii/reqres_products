@@ -17,7 +17,7 @@ phases:
       - chmod +x ./kubectl 
       - mv ./kubectl /usr/local/bin/kubectl 
       - mkdir ~/.kube
-      - aws eks update-kubeconfig --name eks-cluster-name --region aws-region --role-arn arn:aws:iam::879772956301:role/service-role/codebuild-user10-test-service-role        
+      - aws eks --region $AWS_DEFAULT_REGION update-kubeconfig --name $CLUSTER_NAME --role-arn arn:aws:iam::879772956301:role/service-role/codebuild-user10-test-service-role        
   pre_build:
     commands:
       - echo Region = $AWS_DEFAULT_REGION # Check Environment Variables
