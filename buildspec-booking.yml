@@ -5,7 +5,7 @@ env:
     CLUSTER_NAME: "user10-eks"
     IMAGE_REPO_NAME: "cna-booking"
     AWS_ACCOUNT_ID: "879772956301"
-
+ 
 phases: 
   install:
     runtime-versions:
