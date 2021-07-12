@@ -47,6 +47,7 @@ phases:
 #      - kubectl config set-context default --cluster=k8s --user=admin 
       - echo Kubernetes config Context...
       - cat ~/.kube/config
+      - aws sts get-caller-identity
 #      - kubectl config use-context default 
 #      - kubectl config use-context arn:aws:eks:$AWS_DEFAULT_REGION:$AWS_ACCOUNT_ID:cluster/$CLUSTER_NAME
       - |
