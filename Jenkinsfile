@@ -9,7 +9,6 @@ pipeline {
         AKS_NAMESPACE = 'default'
         AZURE_CREDENTIALS_ID = 'Azure-Cred' 
         TENANT_ID = 'f46af6a3-e73f-4ab2-a1f7-f33919eda5ac' // Service Principal 등록 후 생성된 ID
-    }
     
     stages {
         stage('Clone Repository') {
@@ -34,14 +33,21 @@ pipeline {
             }
         }
         
-        stage('Push to ACR') {
+        stage('Azure Login') {
             steps {
                 script {
                     withCredentials([usernamePassword(credentialsId: env.AZURE_CREDENTIALS_ID, usernameVariable: 'AZURE_CLIENT_ID', passwordVariable: 'AZURE_CLIENT_SECRET')]) {
                         sh 'az login --service-principal -u $AZURE_CLIENT_ID -p $AZURE_CLIENT_SECRET --tenant ${TENANT_ID}'
-                        sh "az acr login --name ${REGISTRY.split('.')[0]}"
-                        sh "docker push ${REGISTRY}/${IMAGE_NAME}:v${env.BUILD_NUMBER}"
                     }
+                }
+            }
+        }
+        
+        stage('Push to ACR') {
+            steps {
+                script {
+                    sh "az acr login --name ${REGISTRY.split('\\.')[0]}"
+                    sh "docker push ${REGISTRY}/${IMAGE_NAME}:v${env.BUILD_NUMBER}"
                 }
             }
         }
@@ -57,17 +63,14 @@ pipeline {
         stage('Deploy to AKS') {
             steps {
                 script {
-                    withCredentials([usernamePassword(credentialsId: env.AZURE_CREDENTIALS_ID, usernameVariable: 'AZURE_CLIENT_ID', passwordVariable: 'AZURE_CLIENT_SECRET')]) {
-                        sh 'az login --service-principal -u $AZURE_CLIENT_ID -p $AZURE_CLIENT_SECRET --tenant ${TENANT_ID}'
-                        sh "az aks get-credentials --resource-group ${RESOURCE_GROUP} --name ${AKS_CLUSTER}"
-                        sh """
-                        sed 's/latest/v${env.BUILD_ID}/g' kubernetes/deploy.yaml > output.yaml
-                        cat output.yaml
-                        kubectl apply -f output.yaml
-                        kubectl apply -f kubernetes/service.yaml
-                        rm output.yaml
-                        """
-                    }
+                    sh "az aks get-credentials --resource-group ${RESOURCE_GROUP} --name ${AKS_CLUSTER}"
+                    sh """
+                    sed 's/latest/v${env.BUILD_ID}/g' kubernetes/deploy.yaml > output.yaml
+                    cat output.yaml
+                    kubectl apply -f output.yaml
+                    kubectl apply -f kubernetes/service.yaml
+                    rm output.yaml
+                    """
                 }
             }
         }
