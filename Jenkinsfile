@@ -7,7 +7,8 @@ pipeline {
         AKS_CLUSTER = 'user07-aks'
         RESOURCE_GROUP = 'user07-rsrcgrp'
         AKS_NAMESPACE = 'default'
-        AZURE_CREDENTIALS_ID = 'Azure-Cred' // Jenkins에 설정한 Azure 자격 증명 ID
+        AZURE_CREDENTIALS_ID = 'Azure-Cred' 
+        TENANT_ID = 'f46af6a3-e73f-4ab2-a1f7-f33919eda5ac' // Service Principal 등록 후 생성된 ID
     }
     
     stages {
@@ -37,7 +38,7 @@ pipeline {
             steps {
                 script {
                     withCredentials([usernamePassword(credentialsId: env.AZURE_CREDENTIALS_ID, usernameVariable: 'AZURE_CLIENT_ID', passwordVariable: 'AZURE_CLIENT_SECRET')]) {
-                        sh 'az login --service-principal -u $AZURE_CLIENT_ID -p $AZURE_CLIENT_SECRET --tenant <tenant-id>'
+                        sh 'az login --service-principal -u $AZURE_CLIENT_ID -p $AZURE_CLIENT_SECRET --tenant ${TENANT_ID}'
                         sh "az acr login --name ${REGISTRY.split('.')[0]}"
                         sh "docker push ${REGISTRY}/${IMAGE_NAME}:v${env.BUILD_NUMBER}"
                     }
@@ -57,7 +58,7 @@ pipeline {
             steps {
                 script {
                     withCredentials([usernamePassword(credentialsId: env.AZURE_CREDENTIALS_ID, usernameVariable: 'AZURE_CLIENT_ID', passwordVariable: 'AZURE_CLIENT_SECRET')]) {
-                        sh 'az login --service-principal -u $AZURE_CLIENT_ID -p $AZURE_CLIENT_SECRET --tenant <tenant-id>'
+                        sh 'az login --service-principal -u $AZURE_CLIENT_ID -p $AZURE_CLIENT_SECRET --tenant ${TENANT_ID}'
                         sh "az aks get-credentials --resource-group ${RESOURCE_GROUP} --name ${AKS_CLUSTER}"
                         sh """
                         sed 's/latest/v${env.BUILD_ID}/g' kubernetes/deploy.yaml > output.yaml
